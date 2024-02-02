@@ -2,5 +2,6 @@
 .vs/
 .vscode/
 *.zip
+*.dll
 *.timestamp
 deploy-*.ps1

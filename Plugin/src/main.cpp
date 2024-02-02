@@ -1,6 +1,14 @@
 #include "DKUtil/Config.hpp"
 
+#include "Hooks/ChangeLeaderHook.hpp"
+
 using namespace DKUtil::Alias;
+
+void Install() {
+	dku::Hook::Trampoline::AllocTrampoline(1 << 5);
+
+	ChangeLeaderHook::Enable();
+}
 
 BOOL APIENTRY DllMain(HMODULE a_hModule, DWORD a_ul_reason_for_call, LPVOID a_lpReserved)
 {
@@ -14,10 +22,7 @@ BOOL APIENTRY DllMain(HMODULE a_hModule, DWORD a_ul_reason_for_call, LPVOID a_lp
 		dku::Logger::Init(Plugin::NAME, std::to_string(Plugin::Version));
 		INFO("game type : {}", dku::Hook::GetProcessName());
 
-		// do stuff
-		// this allocates 1024 bytes for development builds, you can
-		// adjust the value accordingly with the log result for release builds
-		dku::Hook::Trampoline::AllocTrampoline(1 << 10);
+		Install();
 	}
 
 	return TRUE;
