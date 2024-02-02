@@ -48,7 +48,6 @@ add_library(
 		${SOURCES}
 		${CMAKE_CURRENT_BINARY_DIR}/include/Plugin.h
 		${CMAKE_CURRENT_BINARY_DIR}/version.rc
-		.clang-format
 		vcpkg.json
 )
 

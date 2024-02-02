@@ -5,8 +5,9 @@ class ChangeLeaderHook {
         static void Prepare();
         static void Enable();
         static void Disable();
+
     private:
         inline static bool _prepared;
         inline static uintptr_t _startAddress;
-        inline static std::unique_ptr<DKUtil::Hook::CaveHookHandle, std::default_delete<DKUtil::Hook::CaveHookHandle>> _hook;
+        inline static std::unique_ptr<DKUtil::Hook::CaveHookHandle> _hook;
 };

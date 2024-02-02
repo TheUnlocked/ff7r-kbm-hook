@@ -2,7 +2,7 @@
 
 #include "ChangeLeaderHook.hpp"
 
-#define PATCH(bytes) dku::Hook::Patch { bytes, sizeof(bytes) - 1 }
+#define PATCH(bytes) (dku::Hook::Patch { bytes, sizeof(bytes) - 1 })
 
 // Return whether to run the original function
 bool __cdecl Hook_ChangeLeader() {
