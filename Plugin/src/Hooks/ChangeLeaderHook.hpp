@@ -18,10 +18,10 @@ class ChangeLeaderHook : public Hook<ChangeLeaderHook> {
 
     private:
         CONFIG_OPTION(Boolean, EnableHook);
-        CONFIG_OPTION(String,  MenuUp);
-        CONFIG_OPTION(String,  MenuLeft);
-        CONFIG_OPTION(String,  MenuDown);
-        CONFIG_OPTION(String,  MenuRight);
+        CONFIG_OPTION(Key, MenuKeys);
+
+        static std::uintptr_t InterceptStartAddress();
+        static bool __cdecl Hook_ChangeLeader();
 
         bool _prepared;
         uintptr_t _startAddress;

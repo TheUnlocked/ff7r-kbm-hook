@@ -3,14 +3,19 @@
 #define PATCH(bytes) (dku::Hook::Patch { bytes, sizeof(bytes) - 1 })
 
 // Return whether to run the original function
-bool __cdecl Hook_ChangeLeader() {
-    INFO("Tried to change leader.");
+bool __cdecl ChangeLeaderHook::Hook_ChangeLeader() {
+    auto hook = GetSingleton();
 
-    // TODO: Figure out how to decide whether to change leader or not
+    for (auto key : hook->Config_MenuKeys.get_vkey_collection()) {
+        if (GetAsyncKeyState(key) < 0) {
+            return true;
+        }
+    }
+
     return false;
 }
 
-std::uintptr_t InterceptStartAddress() {
+std::uintptr_t ChangeLeaderHook::InterceptStartAddress() {
     auto* addr = dku::Hook::Assembly::search_pattern<
         "41 57 "                    // PUSH       R15
         "48 8d ac 24 60 ec ff ff"   // LEA RBP=>[RSP + -0x13a0]
@@ -26,10 +31,7 @@ void ChangeLeaderHook::Prepare() {
     }
 
     CONFIG_BIND(Config_EnableHook, true);
-    CONFIG_BIND(Config_MenuUp, "w");
-    CONFIG_BIND(Config_MenuLeft, "a");
-    CONFIG_BIND(Config_MenuDown, "s");
-    CONFIG_BIND(Config_MenuRight, "d");
+    CONFIG_BIND(Config_MenuKeys, "up", "left", "down", "right");
 
     _startAddress = InterceptStartAddress();
 

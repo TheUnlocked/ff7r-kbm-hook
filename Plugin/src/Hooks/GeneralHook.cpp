@@ -73,7 +73,7 @@ LRESULT CALLBACK GeneralHook::Hook_OnKeyboard(int code, WPARAM wParam, LPARAM lP
     if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
         auto vkCode = ((KBDLLHOOKSTRUCT*) lParam)->vkCode;
 
-        auto reloadKey = GetSingleton()->Config_ReloadKey.get_data_vkey();
+        auto reloadKey = GetSingleton()->Config_ReloadKey.get_vkey_data();
         if (vkCode == reloadKey) {
             GetSingleton()->ReloadConfig();
         }
