@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Settings.hpp";
+#include "../Settings.hpp"
 
 template<typename T>
 struct Hook : public dku::model::Singleton<T> {
@@ -10,7 +10,7 @@ struct Hook : public dku::model::Singleton<T> {
 
     // Must be run before other calls
     virtual void Prepare() = 0;
-    
+
     virtual void Enable() = 0;
     virtual void Disable() = 0;
 

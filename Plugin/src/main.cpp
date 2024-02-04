@@ -5,7 +5,7 @@
 using namespace DKUtil::Alias;
 
 void Install() {
-    dku::Hook::Trampoline::AllocTrampoline(1 << 5);
+    dku::Hook::Trampoline::AllocTrampoline(1 << 6);
 
 	auto hooks = GeneralHook::GetSingleton();
 
@@ -17,9 +17,6 @@ void Install() {
 	hooks->Enable();
 }
 
-void Reload() {
-
-}
 
 BOOL APIENTRY DllMain(HMODULE a_hModule, DWORD a_ul_reason_for_call, LPVOID a_lpReserved) {
     if (a_ul_reason_for_call == DLL_PROCESS_ATTACH) {
