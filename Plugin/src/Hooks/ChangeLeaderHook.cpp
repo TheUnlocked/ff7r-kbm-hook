@@ -1,5 +1,3 @@
-#include "spdlog/fmt/bin_to_hex.h"
-
 #include "ChangeLeaderHook.hpp"
 
 #define PATCH(bytes) (dku::Hook::Patch { bytes, sizeof(bytes) - 1 })
@@ -26,6 +24,12 @@ void ChangeLeaderHook::Prepare() {
     if (_prepared) {
         return;
     }
+
+    CONFIG_BIND(Config_EnableHook, true);
+    CONFIG_BIND(Config_MenuUp, "w");
+    CONFIG_BIND(Config_MenuLeft, "a");
+    CONFIG_BIND(Config_MenuDown, "s");
+    CONFIG_BIND(Config_MenuRight, "d");
 
     _startAddress = InterceptStartAddress();
 
@@ -59,15 +63,10 @@ void ChangeLeaderHook::Prepare() {
         dku::Hook::HookFlag::kNoFlag
     );
 
-    INFO("ChangeLeaderHook prepared");
     _prepared = true;
 }
 
 void ChangeLeaderHook::Enable() {
-    if (!_prepared) {
-        Prepare();
-    }
-    
     _hook->Enable();
 
     // Restore the original function (the first 5-byte instruction is part of the epilogue)
@@ -78,12 +77,8 @@ void ChangeLeaderHook::Enable() {
         InterceptLength - 5,
         false
     );
-    
-    INFO("ChangeLeaderHook enabled");
 }
 
 void ChangeLeaderHook::Disable() {
     _hook->Disable();
-
-    INFO("ChangeLeaderHook disabled");
 }

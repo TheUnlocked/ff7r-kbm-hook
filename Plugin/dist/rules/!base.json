@@ -3,7 +3,7 @@
         "action": "base",
         "params": [
             "{target_base}",
-            "{env:GamePath}\\End\\Binaries\\Win64\\"
+            "{env:FF7RGamePath}\\NativeMods\\"
         ]
     },
     {
