@@ -13,4 +13,5 @@ class InputManager : public dku::Singleton<InputManager> {
         std::vector<keyboard_callback> _keyDown_callbacks;
 
         static LRESULT CALLBACK _Hook_OnKeyboard(int code, WPARAM wParam, LPARAM lParam);      
+        static LRESULT CALLBACK _Hook_OnMouse(int code, WPARAM wParam, LPARAM lParam);      
 };
