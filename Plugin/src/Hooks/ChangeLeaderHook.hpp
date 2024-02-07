@@ -18,12 +18,11 @@ class ChangeLeaderHook : public Hook<ChangeLeaderHook> {
 
     private:
         CONFIG_OPTION(Boolean, EnableHook);
-        CONFIG_OPTION(Key, MenuKeys);
+        CONFIG_OPTION(Key, PrevLeader);
+        CONFIG_OPTION(Key, NextLeader);
 
-        static std::uintptr_t InterceptStartAddress();
-        static bool __cdecl Hook_ChangeLeader();
+        std::unique_ptr<DKUtil::Hook::ASMPatchHandle> _changePrevHook;
+        std::unique_ptr<DKUtil::Hook::ASMPatchHandle> _changeNextHook;
 
-        bool _prepared;
-        uintptr_t _startAddress;
-        std::unique_ptr<DKUtil::Hook::CaveHookHandle> _hook;
+        static void on_KeyDown(int vkCode);
 };

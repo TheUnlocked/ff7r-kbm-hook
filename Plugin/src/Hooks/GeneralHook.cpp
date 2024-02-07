@@ -65,22 +65,11 @@ void GeneralHook::ReloadConfig() {
     INFO("Config reloaded");
 }
 
-LRESULT CALLBACK GeneralHook::Hook_OnKeyboard(int code, WPARAM wParam, LPARAM lParam) {
-    if (code != HC_ACTION) {
-        goto end;
+void GeneralHook::on_KeyDown(int vkCode) {
+    auto reloadKey = GetSingleton()->Config_ReloadKey.get_vkey_data();
+    if (vkCode == reloadKey) {
+        GetSingleton()->ReloadConfig();
     }
-
-    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
-        auto vkCode = ((KBDLLHOOKSTRUCT*) lParam)->vkCode;
-
-        auto reloadKey = GetSingleton()->Config_ReloadKey.get_vkey_data();
-        if (vkCode == reloadKey) {
-            GetSingleton()->ReloadConfig();
-        }
-    }
-
-end:
-    return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
 void GeneralHook::Enable() {
@@ -90,16 +79,7 @@ void GeneralHook::Enable() {
         }
     }
 
-    _kbHook = SetWindowsHookEx(
-        WH_KEYBOARD_LL,
-        Hook_OnKeyboard,
-        DllState::a_hModule,
-        0
-    );
-    
-    if (_kbHook == NULL) {
-        ERROR("Failed to attach hook with error {}", GetLastError());
-    }
+    InputManager::GetSingleton()->register_on_keyDown(on_KeyDown);
 
     INFO("{} enabled", Name());
 
@@ -111,7 +91,7 @@ void GeneralHook::Disable() {
         DisableHook(info);
     }
 
-    UnhookWindowsHookEx(_kbHook);
+    InputManager::GetSingleton()->free_on_keyDown(on_KeyDown);
 
     INFO("{} disabled", Name());
 

@@ -45,13 +45,10 @@ class Key : public String {
                 ? get_collection()
                 : std::vector { get_data() };
 
-            INFO("current {}", fmt::join(current_collection, ","));
             if (current_collection == _last_collection) {
-                INFO("From cache");
                 return _last_vkey_collection;
             }
             else {
-                INFO("recalculated");
                 _last_collection.clear();
                 _last_vkey_collection.clear();
 

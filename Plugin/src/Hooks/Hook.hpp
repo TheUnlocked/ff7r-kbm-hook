@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Settings.hpp"
+#include "../InputManager.hpp"
 
 template<typename T>
 struct Hook : public dku::model::Singleton<T> {

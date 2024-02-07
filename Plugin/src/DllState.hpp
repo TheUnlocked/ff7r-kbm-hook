@@ -1,3 +1,4 @@
 namespace DllState {
-    static HMODULE a_hModule;
+    static HMODULE hmodule;
+    static DWORD currentProcessId = GetCurrentProcessId();
 }

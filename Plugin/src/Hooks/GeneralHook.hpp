@@ -34,6 +34,6 @@ class GeneralHook : public Hook<GeneralHook> {
         bool _prepared;
         bool _enabled;
         std::vector<_HookInfo*> _hooks;
-        HHOOK _kbHook;
-        static LRESULT CALLBACK Hook_OnKeyboard(int code, WPARAM wParam, LPARAM lParam);
+
+        static void on_KeyDown(int vkCode);
 };
