@@ -20,9 +20,12 @@ class ChangeLeaderHook : public Hook<ChangeLeaderHook> {
         CONFIG_OPTION(Boolean, EnableHook);
         CONFIG_OPTION(Key, PrevLeader);
         CONFIG_OPTION(Key, NextLeader);
+        CONFIG_OPTION(Boolean, ZExperiment_AllowChangingLeaderOutOfCombat);
+        CONFIG_OPTION(Boolean, ZExperiment_DisableTimeStop);
 
         std::unique_ptr<DKUtil::Hook::ASMPatchHandle> _changePrevHook;
         std::unique_ptr<DKUtil::Hook::ASMPatchHandle> _changeNextHook;
 
         static void on_KeyDown(int vkCode);
+        static void TryChangeLeader(bool forwards);
 };
