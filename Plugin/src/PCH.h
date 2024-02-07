@@ -119,3 +119,4 @@ using namespace std::literals;
 
 // Others
 #include "DllState.hpp"
+#include "Memory.hpp"
