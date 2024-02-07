@@ -9,18 +9,13 @@ using namespace DKUtil::Alias; // For type alias
 
 #define CONFIG_BIND(Option, ...) Settings::GetSingleton()->MainConfig.Bind(Option, __VA_ARGS__)
 
-#define CONFIG_SETUP() { \
-    Settings::GetSingleton()->MainConfig.Load(); \
-    Settings::GetSingleton()->MainConfig.Generate(); \
-    Settings::GetSingleton()->MainConfig.Write(); \
-    INFO("Wrote config file"); \
-}
-
 #define CONFIG_LOAD() Settings::GetSingleton()->MainConfig.Load();
+
+#define CONFIG_SETUP() CONFIG_LOAD()
 
 struct Settings : public dku::model::Singleton<Settings> {
     TomlConfig MainConfig = dku::Config::Proxy<dku::Config::FileType::kToml>(
-        (std::filesystem::current_path() / "KbmHook.toml").string()
+        (std::filesystem::current_path() / fmt::format("{}.toml", Plugin::NAME)).string()
     );
 };
 
