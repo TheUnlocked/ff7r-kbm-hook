@@ -65,7 +65,7 @@ void GeneralHook::ReloadConfig() {
     INFO("Config reloaded");
 }
 
-void GeneralHook::on_KeyDown(int vkCode) {
+void GeneralHook::on_keyDown(int vkCode) {
     auto reloadKey = GetSingleton()->Config_ReloadKey.get_vkey_data();
     if (vkCode == reloadKey) {
         GetSingleton()->ReloadConfig();
@@ -79,7 +79,7 @@ void GeneralHook::Enable() {
         }
     }
 
-    InputManager::GetSingleton()->register_on_keyDown(on_KeyDown);
+    InputManager::GetSingleton()->register_on_keyDown(on_keyDown);
 
     INFO("{} enabled", Name());
 
@@ -91,7 +91,7 @@ void GeneralHook::Disable() {
         DisableHook(info);
     }
 
-    InputManager::GetSingleton()->free_on_keyDown(on_KeyDown);
+    InputManager::GetSingleton()->free_on_keyDown(on_keyDown);
 
     INFO("{} disabled", Name());
 

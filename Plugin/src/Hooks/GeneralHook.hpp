@@ -35,5 +35,5 @@ class GeneralHook : public Hook<GeneralHook> {
         bool _enabled;
         std::vector<_HookInfo*> _hooks;
 
-        static void on_KeyDown(int vkCode);
+        static void on_keyDown(int vkCode);
 };

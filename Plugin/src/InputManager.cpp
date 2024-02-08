@@ -6,10 +6,14 @@ LRESULT CALLBACK InputManager::_Hook_OnKeyboard(int code, WPARAM wParam, LPARAM 
             DWORD pid;
             GetWindowThreadProcessId(hwnd, &pid);
             if (pid == DllState::currentProcessId) {
+                auto vkCode = ((KBDLLHOOKSTRUCT*) lParam)->vkCode;
                 if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
-                    auto vkCode = ((KBDLLHOOKSTRUCT*) lParam)->vkCode;
-
                     for (auto hook : GetSingleton()->_keyDown_callbacks) {
+                        hook(vkCode);
+                    }
+                }
+                else {
+                    for (auto hook : GetSingleton()->_keyUp_callbacks) {
                         hook(vkCode);
                     }
                 }
@@ -27,17 +31,29 @@ LRESULT CALLBACK InputManager::_Hook_OnMouse(int code, WPARAM wParam, LPARAM lPa
             if (pid == DllState::currentProcessId) {
 
                 int vkCode = 0;
+                bool isDown = false;
                 switch (wParam) {
                     case WM_LBUTTONDOWN:
+                        isDown = true;
+                    case WM_LBUTTONUP:
                         vkCode = VK_LBUTTON;
                         break;
+
                     case WM_RBUTTONDOWN:
+                        isDown = true;
+                    case WM_RBUTTONUP:
                         vkCode = VK_RBUTTON;
                         break;
+
                     case WM_MBUTTONDOWN:
+                        isDown = true;
+                    case WM_MBUTTONUP:
                         vkCode = VK_MBUTTON;
                         break;
-                    case WM_XBUTTONDOWN: {
+
+                    case WM_XBUTTONDOWN:
+                        isDown = true;
+                    case WM_XBUTTONUP: {
                         auto xbutton = GET_XBUTTON_WPARAM(((MSLLHOOKSTRUCT*) lParam)->mouseData);
                         switch (xbutton) {
                             case XBUTTON1:
@@ -52,8 +68,15 @@ LRESULT CALLBACK InputManager::_Hook_OnMouse(int code, WPARAM wParam, LPARAM lPa
                 }
 
                 if (vkCode != 0) {
-                    for (auto hook : GetSingleton()->_keyDown_callbacks) {
-                        hook(vkCode);
+                    if (isDown) {
+                        for (auto hook : GetSingleton()->_keyDown_callbacks) {
+                            hook(vkCode);
+                        }
+                    }
+                    else {
+                        for (auto hook : GetSingleton()->_keyUp_callbacks) {
+                            hook(vkCode);
+                        }
                     }
                 }
 
@@ -89,13 +112,17 @@ InputManager::InputManager() {
     }).detach();
 }
 
-void InputManager::register_on_keyDown(keyboard_callback callback) {
-    _keyDown_callbacks.push_back(callback);
-}
-
-void InputManager::free_on_keyDown(keyboard_callback callback) {
-    auto pos = std::find(_keyDown_callbacks.begin(), _keyDown_callbacks.end(), callback);
-    if (pos != _keyDown_callbacks.end()) {
-        _keyDown_callbacks.erase(pos);
+#define IMPLEMENT_KEYBOARD_EVENT(name) \
+    void InputManager::register_on_## name ##(keyboard_callback callback) {                         \
+        _## name ##_callbacks.push_back(callback);                                                  \
+    }                                                                                               \
+                                                                                                    \
+    void InputManager::free_on_## name ##(keyboard_callback callback) {                             \
+        auto pos = std::find(_## name ##_callbacks.begin(), _## name ##_callbacks.end(), callback); \
+        if (pos != _## name ##_callbacks.end()) {                                                   \
+            _## name ##_callbacks.erase(pos);                                                       \
+        }                                                                                           \
     }
-}
+
+IMPLEMENT_KEYBOARD_EVENT(keyDown);
+IMPLEMENT_KEYBOARD_EVENT(keyUp);

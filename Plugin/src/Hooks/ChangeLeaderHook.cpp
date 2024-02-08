@@ -4,54 +4,95 @@
 typedef byte func_ChangeLeader(uintptr_t, bool advanceForwards, bool /* ??? */, bool stopTime);
 
 const auto ChangeLeader = Memory::deref_static<func_ChangeLeader>(0x9b67e0);
-
-uintptr_t ChangeLeaderArgument() {
-    return Memory::deref_static<uintptr_t>(0x57b9220);
-}
-
 const std::uintptr_t ChangeLeaderCallerAddress = Memory::get_code_address(0x140ff90);
 constexpr std::ptrdiff_t PrevLeaderBaseCallOffset = 0x1bc;
 constexpr std::ptrdiff_t NextLeaderBaseCallOffset = 0x16e;
-constexpr dku::Hook::Patch NOP_PATCH = { "\x90", 1 };
+
+byte ChangeLeaderHook::ChangeLeaderIntercept(uintptr_t obj, bool advanceForwards, bool p3, bool stopTime) {
+    auto self = GetSingleton();
+
+    auto disableStopTime = self->Config_ZExperiment_DisableTimeStop.get_data();
+    if (!advanceForwards) {
+        if (!self->_pressedPrev) {
+            return 0;
+        }
+        self->_pressedPrev = false;
+    }
+    else {
+        if (!self->_pressedNext) {
+            return 0;
+        }
+        self->_pressedNext = false;
+    }
+
+    return ChangeLeader(obj, advanceForwards, p3, disableStopTime ? false : stopTime);
+}
 
 void ChangeLeaderHook::Prepare() {
     CONFIG_BIND(Config_EnableHook, true);
     CONFIG_BIND(Config_PrevLeader, "left");
     CONFIG_BIND(Config_NextLeader, "right");
-    CONFIG_BIND(Config_ZExperiment_AllowChangingLeaderOutOfCombat, false);
     CONFIG_BIND(Config_ZExperiment_DisableTimeStop, false);
 
-    _changePrevHook = dku::Hook::AddASMPatch(
-        ChangeLeaderCallerAddress,
-        std::make_pair(PrevLeaderBaseCallOffset, PrevLeaderBaseCallOffset + 5),
-        NOP_PATCH
+    _changePrevHook = dku::Hook::AddRelHook<5, true>(
+        ChangeLeaderCallerAddress + PrevLeaderBaseCallOffset,
+        AsAddress(&ChangeLeaderIntercept)
     );
 
-    _changeNextHook = dku::Hook::AddASMPatch(
-        ChangeLeaderCallerAddress,
-        std::make_pair(NextLeaderBaseCallOffset, NextLeaderBaseCallOffset + 5),
-        NOP_PATCH
+    _changeNextHook = dku::Hook::AddRelHook<5, true>(
+        ChangeLeaderCallerAddress + NextLeaderBaseCallOffset,
+        AsAddress(&ChangeLeaderIntercept)
     );
 }
 
-bool IsInCombat() {
-    return Memory::deref<bool>(Memory::deref_static<uintptr_t>(0x5999f58), 0x348);
-}
+void ChangeLeaderHook::on_keyDown(int vkCode) {
+    auto self = GetSingleton();
 
-void ChangeLeaderHook::TryChangeLeader(bool forwards) {
-    bool anyTime = GetSingleton()->Config_ZExperiment_AllowChangingLeaderOutOfCombat.get_data();
-    if (anyTime || IsInCombat()) {
-        bool timeStop = !GetSingleton()->Config_ZExperiment_DisableTimeStop.get_data();
-        ChangeLeader(ChangeLeaderArgument(), forwards, false, timeStop);
+    int targetVkey = 0;
+    if (vkCode == self->Config_PrevLeader.get_vkey_data()) {
+        targetVkey = VK_LEFT;
+        self->_pressedPrev = true;
+    }
+    else if (vkCode == self->Config_NextLeader.get_vkey_data()) {
+        targetVkey = VK_RIGHT;
+        self->_pressedNext = true;
+    }
+    
+    if (targetVkey != 0) {
+        INPUT ip {
+            INPUT_KEYBOARD,
+            { .ki = {
+                .wVk = (WORD)targetVkey,
+                .wScan = (WORD)MapVirtualKeyA(targetVkey, MAPVK_VK_TO_VSC_EX)
+            } }
+        };
+        SendInput(1, &ip, sizeof(INPUT));
     }
 }
 
-void ChangeLeaderHook::on_KeyDown(int vkCode) {
-    if (vkCode == GetSingleton()->Config_PrevLeader.get_vkey_data()) {
-        TryChangeLeader(false);
+void ChangeLeaderHook::on_keyUp(int vkCode) {
+    auto self = GetSingleton();
+    
+    int targetVkey = 0;
+    if (vkCode == self->Config_PrevLeader.get_vkey_data()) {
+        targetVkey = VK_LEFT;
+        self->_pressedPrev = false;
     }
-    else if (vkCode == GetSingleton()->Config_NextLeader.get_vkey_data()) {
-        TryChangeLeader(true);
+    else if (vkCode == self->Config_NextLeader.get_vkey_data()) {
+        targetVkey = VK_RIGHT;
+        self->_pressedNext = false;
+    }
+    
+    if (targetVkey != 0) {
+        INPUT ip {
+            INPUT_KEYBOARD,
+            { .ki = {
+                .wVk = (WORD)targetVkey,
+                .wScan = (WORD)MapVirtualKeyA(targetVkey, MAPVK_VK_TO_VSC_EX),
+                .dwFlags = KEYEVENTF_KEYUP
+            } }
+        };
+        SendInput(1, &ip, sizeof(INPUT));
     }
 }
 
@@ -59,12 +100,14 @@ void ChangeLeaderHook::Enable() {
     _changePrevHook->Enable();
     _changeNextHook->Enable();
 
-    InputManager::GetSingleton()->register_on_keyDown(on_KeyDown);
+    InputManager::GetSingleton()->register_on_keyDown(on_keyDown);
+    InputManager::GetSingleton()->register_on_keyUp(on_keyUp);
 }
 
 void ChangeLeaderHook::Disable() {
     _changePrevHook->Disable();
     _changeNextHook->Disable();
 
-    InputManager::GetSingleton()->free_on_keyDown(on_KeyDown);
+    InputManager::GetSingleton()->free_on_keyDown(on_keyDown);
+    InputManager::GetSingleton()->free_on_keyUp(on_keyUp);
 }
