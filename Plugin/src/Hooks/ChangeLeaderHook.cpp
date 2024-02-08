@@ -49,13 +49,24 @@ void ChangeLeaderHook::on_keyDown(int vkCode) {
     auto self = GetSingleton();
 
     int targetVkey = 0;
+
+    // 20ms should be long enough for an update cycle, but is short enough to avoid the case where a user holds
+    // a switch key when switching is disallowed, then presses an unrelated key triggering the switch unexpectedly. 
     if (vkCode == self->Config_PrevLeader.get_vkey_data()) {
         targetVkey = VK_LEFT;
         self->_pressedPrev = true;
+        std::thread([self] {
+            std::this_thread::sleep_for(20ms);
+            self->_pressedPrev = false;
+        }).detach();
     }
     else if (vkCode == self->Config_NextLeader.get_vkey_data()) {
         targetVkey = VK_RIGHT;
         self->_pressedNext = true;
+        std::thread([self] {
+            std::this_thread::sleep_for(20ms);
+            self->_pressedNext = false;
+        }).detach();
     }
     
     if (targetVkey != 0) {
@@ -76,11 +87,9 @@ void ChangeLeaderHook::on_keyUp(int vkCode) {
     int targetVkey = 0;
     if (vkCode == self->Config_PrevLeader.get_vkey_data()) {
         targetVkey = VK_LEFT;
-        self->_pressedPrev = false;
     }
     else if (vkCode == self->Config_NextLeader.get_vkey_data()) {
         targetVkey = VK_RIGHT;
-        self->_pressedNext = false;
     }
     
     if (targetVkey != 0) {
