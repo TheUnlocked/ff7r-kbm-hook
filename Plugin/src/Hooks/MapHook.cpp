@@ -154,11 +154,11 @@ void MapHook::Prepare() {
             "\x41\x51"              // push r9
             // "push" xmm2
             "\x48\x83\xec\x10"      // sub rsp,16
-            "\xf3\x0f\x7f\x14\x24"  // movdqu  [rsp], xmm2
+            "\xf3\x0f\x7f\x14\x24"  // movdqu [rsp],xmm2
         ),
         PATCH(
             // "pop" xmm2
-            "\xf3\x0f\x6f\x14\x24"  // movdqu  xmm2, [rsp]
+            "\xf3\x0f\x6f\x14\x24"  // movdqu xmm2,[rsp]
             "\x48\x83\xc4\x10"      // add rsp,16
             // pop arguments
             "\x41\x59"              // pop r9
