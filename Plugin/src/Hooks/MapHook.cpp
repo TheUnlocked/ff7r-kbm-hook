@@ -113,7 +113,7 @@ void MapHook::SetMapCursorPosition(uintptr_t param1) {
                 *reticleX = newReticleX;
                 *reticleY = newReticleY;
 
-                if (GetKeyState(VK_LBUTTON) < 0) {
+                if (GetAsyncKeyState(VK_LBUTTON) < 0) {
                     *screenX += dx / *zoom;
                     *screenY -= dy / *zoom;
                 }

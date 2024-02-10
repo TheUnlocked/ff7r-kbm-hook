@@ -14,10 +14,33 @@ LRESULT CALLBACK InputManager::_Hook_OnKeyboard(int code, WPARAM wParam, LPARAM 
             GetWindowThreadProcessId(hwnd, &pid);
             if (pid == DllState::currentProcessId) {
                 auto vkCode = ((KBDLLHOOKSTRUCT*) lParam)->vkCode;
+
+                int genericCode = 0;
+                switch (vkCode) {
+                    case VK_LSHIFT:
+                    case VK_RSHIFT:
+                        genericCode = VK_SHIFT;
+                        break;
+                    case VK_LCONTROL:
+                    case VK_RCONTROL:
+                        genericCode = VK_CONTROL;
+                        break;
+                    case VK_LMENU:
+                    case VK_RMENU:
+                        genericCode = VK_MENU;
+                        break;
+                }
+
                 if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+                    if (genericCode) {
+                        EMIT(keyDown, genericCode);
+                    }
                     EMIT(keyDown, vkCode);
                 }
                 else {
+                    if (genericCode) {
+                        EMIT(keyUp, genericCode);
+                    }
                     EMIT(keyUp, vkCode);
                 }
             }
