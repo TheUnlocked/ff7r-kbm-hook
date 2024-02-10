@@ -1,15 +1,17 @@
 #include "Settings.hpp"
 #include "Hooks/GeneralHook.hpp"
 #include "Hooks/ChangeLeaderHook.hpp"
+#include "Hooks/MapHook.hpp"
 
 using namespace DKUtil::Alias;
 
 void Install() {
-    dku::Hook::Trampoline::AllocTrampoline(1 << 6);
+    dku::Hook::Trampoline::AllocTrampoline(1 << 7);
 
 	auto hooks = GeneralHook::GetSingleton();
 
 	hooks->RegisterHook<ChangeLeaderHook>();
+	hooks->RegisterHook<MapHook>();
 	hooks->Prepare();
 
 	CONFIG_SETUP();

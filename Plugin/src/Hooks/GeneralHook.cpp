@@ -65,11 +65,12 @@ void GeneralHook::ReloadConfig() {
     INFO("Config reloaded");
 }
 
-void GeneralHook::on_keyDown(int vkCode) {
+event_result GeneralHook::on_keyDown(int vkCode) {
     auto reloadKey = GetSingleton()->Config_ReloadKey.get_vkey_data();
     if (vkCode == reloadKey) {
         GetSingleton()->ReloadConfig();
     }
+    return Continue;
 }
 
 void GeneralHook::Enable() {

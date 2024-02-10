@@ -1,5 +1,12 @@
 #include "InputManager.hpp"
 
+#define EMIT(name, value)                                       \
+    for (auto hook : GetSingleton()->_## name ##_callbacks) {   \
+        if (hook(value) == Cancel) {                            \
+            return 1;                                           \
+        }                                                       \
+    }                                                           \
+
 LRESULT CALLBACK InputManager::_Hook_OnKeyboard(int code, WPARAM wParam, LPARAM lParam) {
     if (code == HC_ACTION) {
         if (HWND hwnd = GetForegroundWindow()) {
@@ -8,14 +15,10 @@ LRESULT CALLBACK InputManager::_Hook_OnKeyboard(int code, WPARAM wParam, LPARAM 
             if (pid == DllState::currentProcessId) {
                 auto vkCode = ((KBDLLHOOKSTRUCT*) lParam)->vkCode;
                 if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
-                    for (auto hook : GetSingleton()->_keyDown_callbacks) {
-                        hook(vkCode);
-                    }
+                    EMIT(keyDown, vkCode);
                 }
                 else {
-                    for (auto hook : GetSingleton()->_keyUp_callbacks) {
-                        hook(vkCode);
-                    }
+                    EMIT(keyUp, vkCode);
                 }
             }
         }
@@ -32,6 +35,7 @@ LRESULT CALLBACK InputManager::_Hook_OnMouse(int code, WPARAM wParam, LPARAM lPa
 
                 int vkCode = 0;
                 bool isDown = false;
+                auto mouseData = ((MSLLHOOKSTRUCT*) lParam)->mouseData;
                 switch (wParam) {
                     case WM_LBUTTONDOWN:
                         isDown = true;
@@ -54,7 +58,7 @@ LRESULT CALLBACK InputManager::_Hook_OnMouse(int code, WPARAM wParam, LPARAM lPa
                     case WM_XBUTTONDOWN:
                         isDown = true;
                     case WM_XBUTTONUP: {
-                        auto xbutton = GET_XBUTTON_WPARAM(((MSLLHOOKSTRUCT*) lParam)->mouseData);
+                        auto xbutton = GET_XBUTTON_WPARAM(mouseData);
                         switch (xbutton) {
                             case XBUTTON1:
                                 vkCode = VK_XBUTTON1;
@@ -65,18 +69,19 @@ LRESULT CALLBACK InputManager::_Hook_OnMouse(int code, WPARAM wParam, LPARAM lPa
                         }
                         break;
                     }
+
+                    case WM_MOUSEWHEEL: {
+                        uint16_t wheelDelta = GET_WHEEL_DELTA_WPARAM(mouseData);
+                        EMIT(scroll, wheelDelta);
+                    }
                 }
 
                 if (vkCode != 0) {
                     if (isDown) {
-                        for (auto hook : GetSingleton()->_keyDown_callbacks) {
-                            hook(vkCode);
-                        }
+                        EMIT(keyDown, vkCode);
                     }
                     else {
-                        for (auto hook : GetSingleton()->_keyUp_callbacks) {
-                            hook(vkCode);
-                        }
+                        EMIT(keyUp, vkCode);
                     }
                 }
 
@@ -112,17 +117,18 @@ InputManager::InputManager() {
     }).detach();
 }
 
-#define IMPLEMENT_KEYBOARD_EVENT(name) \
-    void InputManager::register_on_## name ##(keyboard_callback callback) {                         \
+#define IMPLEMENT_EVENT(callback_type, name)                                                        \
+    void InputManager::register_on_## name ##(callback_type callback) {                             \
         _## name ##_callbacks.push_back(callback);                                                  \
     }                                                                                               \
                                                                                                     \
-    void InputManager::free_on_## name ##(keyboard_callback callback) {                             \
+    void InputManager::free_on_## name ##(callback_type callback) {                                 \
         auto pos = std::find(_## name ##_callbacks.begin(), _## name ##_callbacks.end(), callback); \
         if (pos != _## name ##_callbacks.end()) {                                                   \
             _## name ##_callbacks.erase(pos);                                                       \
         }                                                                                           \
     }
 
-IMPLEMENT_KEYBOARD_EVENT(keyDown);
-IMPLEMENT_KEYBOARD_EVENT(keyUp);
+IMPLEMENT_EVENT(keyboard_callback, keyDown);
+IMPLEMENT_EVENT(keyboard_callback, keyUp);
+IMPLEMENT_EVENT(scroll_callback, scroll);

@@ -45,7 +45,7 @@ void ChangeLeaderHook::Prepare() {
     );
 }
 
-void ChangeLeaderHook::on_keyDown(int vkCode) {
+event_result ChangeLeaderHook::on_keyDown(int vkCode) {
     auto self = GetSingleton();
 
     int targetVkey = 0;
@@ -79,9 +79,10 @@ void ChangeLeaderHook::on_keyDown(int vkCode) {
         };
         SendInput(1, &ip, sizeof(INPUT));
     }
+    return Continue;
 }
 
-void ChangeLeaderHook::on_keyUp(int vkCode) {
+event_result ChangeLeaderHook::on_keyUp(int vkCode) {
     auto self = GetSingleton();
     
     int targetVkey = 0;
@@ -103,6 +104,7 @@ void ChangeLeaderHook::on_keyUp(int vkCode) {
         };
         SendInput(1, &ip, sizeof(INPUT));
     }
+    return Continue;
 }
 
 void ChangeLeaderHook::Enable() {

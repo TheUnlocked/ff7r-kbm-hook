@@ -30,6 +30,6 @@ class ChangeLeaderHook : public Hook<ChangeLeaderHook> {
         bool _pressedPrev;
         bool _pressedNext;
 
-        static void on_keyDown(int vkCode);
-        static void on_keyUp(int vkCode);
+        static event_result on_keyDown(int vkCode);
+        static event_result on_keyUp(int vkCode);
 };
