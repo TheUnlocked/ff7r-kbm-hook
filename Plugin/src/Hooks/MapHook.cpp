@@ -138,7 +138,7 @@ void MapHook::SetMapCursorPosition(uintptr_t param1) {
 
 void MapHook::Prepare() {
     CONFIG_BIND(Config_EnableHook, true);
-    CONFIG_BIND(Config_LockMouse, false);
+    CONFIG_BIND(Config_LockMouse, true);
     Settings::GetSingleton()->MainConfig.Bind<0., 10.>(Config_ZoomSensitivity, 5);
 
     _hook = dku::Hook::AddCaveHook(
