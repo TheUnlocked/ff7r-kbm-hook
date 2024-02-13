@@ -3,10 +3,20 @@
 
 typedef byte func_ChangeLeader(uintptr_t, bool advanceForwards, bool /* ??? */, bool stopTime);
 
-const auto ChangeLeader = Memory::deref_static<func_ChangeLeader>(0x9b67e0);
-const std::uintptr_t ChangeLeaderCallerAddress = Memory::get_code_address(0x140ff90);
-constexpr std::ptrdiff_t PrevLeaderBaseCallOffset = 0x1bc;
-constexpr std::ptrdiff_t NextLeaderBaseCallOffset = 0x16e;
+const auto ChangeLeader = reinterpret_cast<func_ChangeLeader*>(
+    AsAddress(dku::Hook::search_pattern<
+        "41 57 "
+        "48 8d ac 24 60 ec ff ff "
+        "b8 a0 14 00 00"
+    >()) - 0xe
+);
+const std::uintptr_t ChangeLeaderNextCallerAddress =
+    AsAddress(dku::Hook::search_pattern<
+        "45 0f b6 cf "
+        "45 33 c0 "
+        "41 0f b6 d7"
+    >()) + 0xb;
+const std::uintptr_t ChangeLeaderPrevCallerAddress = ChangeLeaderNextCallerAddress + 0x4e;
 
 byte ChangeLeaderHook::ChangeLeaderIntercept(uintptr_t obj, bool advanceForwards, bool p3, bool stopTime) {
     auto self = GetSingleton();
@@ -35,12 +45,12 @@ void ChangeLeaderHook::Prepare() {
     CONFIG_BIND(Config_ZExperiment_DisableTimeStop, false);
 
     _changePrevHook = dku::Hook::AddRelHook<5, true>(
-        ChangeLeaderCallerAddress + PrevLeaderBaseCallOffset,
+        ChangeLeaderNextCallerAddress,
         AsAddress(&ChangeLeaderIntercept)
     );
 
     _changeNextHook = dku::Hook::AddRelHook<5, true>(
-        ChangeLeaderCallerAddress + NextLeaderBaseCallOffset,
+        ChangeLeaderPrevCallerAddress,
         AsAddress(&ChangeLeaderIntercept)
     );
 }

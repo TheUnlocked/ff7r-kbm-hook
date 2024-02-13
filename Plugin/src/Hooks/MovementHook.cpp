@@ -9,7 +9,11 @@
 constexpr float WALK_SPEED = 0.4f;
 
 // This is directly after the call where the raw joystick values are fetched
-const auto WalkInjectionSite = Memory::get_code_address(0x15e8563);
+const auto WalkInjectionSite =
+    AsAddress(dku::Hook::search_pattern<
+        "f3 44 0f 10 55 40 "
+        "f3 0f 10 8b 18 07 00 00"
+    >());
 
 event_result MovementHook::on_keyDown(int vkCode) {
     auto self = GetSingleton();

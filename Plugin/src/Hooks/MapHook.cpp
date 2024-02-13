@@ -5,9 +5,27 @@
 typedef byte func_MoveReticle(uintptr_t, uint64_t);
 typedef byte func_ChangeZoom(uintptr_t, float);
 
-const auto MapControlAddress = Memory::get_code_address(0x118d170);
-const auto MoveReticle = &Memory::deref_static<func_MoveReticle>(0x13495b0);
-const auto ChangeZoom = &Memory::deref_static<func_ChangeZoom>(0x13548c0);
+const auto MapControlAddress =
+    AsAddress(dku::Hook::search_pattern<
+        "56 "
+        "49 8d ab 78 fd ff ff "
+        "48 81 ec 70 03 00 00"
+    >()) - 0x5;
+const auto MoveReticle = reinterpret_cast<func_MoveReticle*>(
+    AsAddress(dku::Hook::search_pattern<
+        "48 8b 51 70 "
+        "f3 0f 10 44 24 20 "
+        "f3 0f 10 4c 24 24 "
+        "f3 0f 11 41 38"
+    >()) - 0x1e
+);
+const auto ChangeZoom = reinterpret_cast<func_ChangeZoom*>(
+    AsAddress(dku::Hook::search_pattern<
+        "f3 0f 11 89 00 01 00 00 "
+        "48 8b 89 20 01 00 00 "
+        "48 85 c9"
+    >())
+);
 
 event_result MapHook::on_scroll(int16_t delta) {
     auto self = GetSingleton();

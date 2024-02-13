@@ -7,12 +7,6 @@ namespace Memory {
         return *reinterpret_cast<T*>(base + offset);
     }
 
-    template<typename T>
-    [[nodiscard]]
-    inline T& deref_static(std::ptrdiff_t offset) {
-        return deref<T>(base_addr, offset);
-    }
-
     [[nodiscard]]
     inline uintptr_t get_code_address(std::ptrdiff_t offset) {
         return base_addr + offset;
