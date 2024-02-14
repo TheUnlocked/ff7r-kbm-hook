@@ -10,21 +10,21 @@ const auto MapControlAddress =
         "56 "
         "49 8d ab 78 fd ff ff "
         "48 81 ec 70 03 00 00"
-    >()) - 0x5;
+    >()) - 0x5; // 118d175
 const auto MoveReticle = reinterpret_cast<func_MoveReticle*>(
     AsAddress(dku::Hook::search_pattern<
         "48 8b 51 70 "
         "f3 0f 10 44 24 20 "
         "f3 0f 10 4c 24 24 "
         "f3 0f 11 41 38"
-    >()) - 0x1e
+    >()) - 0x1e // 13495ce
 );
 const auto ChangeZoom = reinterpret_cast<func_ChangeZoom*>(
     AsAddress(dku::Hook::search_pattern<
         "f3 0f 11 89 00 01 00 00 "
         "48 8b 89 20 01 00 00 "
         "48 85 c9"
-    >())
+    >()) // 13548c0
 );
 
 event_result MapHook::on_scroll(int16_t delta) {

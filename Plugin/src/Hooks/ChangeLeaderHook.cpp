@@ -8,14 +8,14 @@ const auto ChangeLeader = reinterpret_cast<func_ChangeLeader*>(
         "41 57 "
         "48 8d ac 24 60 ec ff ff "
         "b8 a0 14 00 00"
-    >()) - 0xe
+    >()) - 0xe // 09b67ee
 );
 const std::uintptr_t ChangeLeaderNextCallerAddress =
     AsAddress(dku::Hook::search_pattern<
         "45 0f b6 cf "
         "45 33 c0 "
         "41 0f b6 d7"
-    >()) + 0xb;
+    >()) + 0xb; // 14100f3
 const std::uintptr_t ChangeLeaderPrevCallerAddress = ChangeLeaderNextCallerAddress + 0x4e;
 
 byte ChangeLeaderHook::ChangeLeaderIntercept(uintptr_t obj, bool advanceForwards, bool p3, bool stopTime) {

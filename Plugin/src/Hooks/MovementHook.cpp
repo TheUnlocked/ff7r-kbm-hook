@@ -13,7 +13,7 @@ const auto WalkInjectionSite =
     AsAddress(dku::Hook::search_pattern<
         "f3 44 0f 10 55 40 "
         "f3 0f 10 8b 18 07 00 00"
-    >());
+    >()); // 15e8563
 
 event_result MovementHook::on_keyDown(int vkCode) {
     auto self = GetSingleton();
