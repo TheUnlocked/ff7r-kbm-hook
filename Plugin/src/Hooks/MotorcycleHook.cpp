@@ -90,7 +90,7 @@ void MotorcycleHook::ApplyKeybinds() {
     auto attackRight = Config_AttackRight.get_vkey_data();
     auto guard       = Config_Guard.get_vkey_data();
     auto special     = Config_Special.get_vkey_data();
-    auto aim         = Config_Aim.get_vkey_data();
+    auto longRange   = Config_LongRange.get_vkey_data();
 
     auto ApplyBind = [&](size_t keyIdx, int to) {
         if (to) {
@@ -126,7 +126,7 @@ void MotorcycleHook::ApplyKeybinds() {
     ApplyBind(Keybind::Evade, attackRight);
     ApplyBind(Keybind::Guard, guard);
     ApplyBind(Keybind::PerformUniqueAbility, special);
-    ApplyBind(Keybind::OpenShortcutMenu, aim);
+    ApplyBind(Keybind::OpenShortcutMenu, longRange);
 
     INFO("Applied motorcycle keybinds");
 }
@@ -156,6 +156,14 @@ void MotorcycleHook::UpdateKeybinds(int* flags) {
     }
 }
 
+auto OriginalFunctionAtTapKeybindsLocation = reinterpret_cast<void(*)(void*)>(
+    AsAddress(dku::Hook::search_pattern<
+        "4c 8b dc "
+        "41 56 "
+        "48 83 ec 50"
+    >()) // 1fafc10
+);
+
 void MotorcycleHook::TapKeybindsLocation(void* unk, uintptr_t param1) {
     auto self = GetSingleton();
     
@@ -167,7 +175,7 @@ void MotorcycleHook::TapKeybindsLocation(void* unk, uintptr_t param1) {
     self->_tapKeybindsLocationHook = nullptr;
 
     // Call original function
-    reinterpret_cast<void(*)(void*)>(Memory::get_code_address(0x1fafc10))(unk);
+    OriginalFunctionAtTapKeybindsLocation(unk);
 }
 
 void MotorcycleHook::Prepare() {
@@ -178,10 +186,15 @@ void MotorcycleHook::Prepare() {
     CONFIG_BIND(Config_AttackRight, "rbutton");
     CONFIG_BIND(Config_Guard, "");
     CONFIG_BIND(Config_Special, "");
-    CONFIG_BIND(Config_Aim, "r");
+    CONFIG_BIND(Config_LongRange, "r");
 
     _tapKeybindsLocationHook = dku::Hook::AddCaveHook(
-        Memory::get_code_address(0x1428fb0),
+         AsAddress(dku::Hook::search_pattern<
+            "e8 ?? ?? ?? ?? "
+            "48 8b 44 24 70 "
+            "48 85 c0 "
+            "74 10"
+        >()), // 1428fb0
         std::make_pair(0, 5),
         FUNC_INFO(TapKeybindsLocation),
         PATCH(
@@ -191,7 +204,9 @@ void MotorcycleHook::Prepare() {
     _tapKeybindsLocationHook->Enable();
 
     _setModeFlagHook = dku::Hook::AddCaveHook(
-        Memory::get_code_address(0x1138b7a),
+        AsAddress(dku::Hook::search_pattern<
+            "48 89 9c ee 24 65 10 01"
+        >()), // 1138b7a
         std::make_pair(0, 8),
         FUNC_INFO(UpdateKeybinds),
         PATCH(
@@ -202,7 +217,9 @@ void MotorcycleHook::Prepare() {
     );
 
     _clearModeFlagHook = dku::Hook::AddCaveHook(
-        Memory::get_code_address(0x1138c77),
+        AsAddress(dku::Hook::search_pattern<
+            "4a 89 84 f3 24 65 10 01"
+        >()), // 1138c77
         std::make_pair(0, 8),
         FUNC_INFO(UpdateKeybinds),
         PATCH(

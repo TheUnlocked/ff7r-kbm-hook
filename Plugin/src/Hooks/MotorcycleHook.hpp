@@ -26,7 +26,7 @@ class MotorcycleHook : public Hook<MotorcycleHook> {
         CONFIG_OPTION(Key, AttackRight);
         CONFIG_OPTION(Key, Guard);
         CONFIG_OPTION(Key, Special);
-        CONFIG_OPTION(Key, Aim);
+        CONFIG_OPTION(Key, LongRange);
 
         char* _keybindsLocation;
         bool _isInMotorcycleGameMode = false;
