@@ -15,6 +15,10 @@ struct Hook : public dku::model::Singleton<T> {
     virtual void Enable() = 0;
     virtual void Disable() = 0;
 
+    virtual void RefreshConfig() {
+        
+    }
+
     virtual bool ShouldEnable() {
         return true;
     }

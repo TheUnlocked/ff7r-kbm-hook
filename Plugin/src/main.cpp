@@ -3,6 +3,7 @@
 #include "Hooks/ChangeLeaderHook.hpp"
 #include "Hooks/MapHook.hpp"
 #include "Hooks/MovementHook.hpp"
+#include "Hooks/MotorcycleHook.hpp"
 
 using namespace DKUtil::Alias;
 
@@ -14,6 +15,7 @@ void Install() {
     hooks->RegisterHook<ChangeLeaderHook>();
     hooks->RegisterHook<MapHook>();
     hooks->RegisterHook<MovementHook>();
+    hooks->RegisterHook<MotorcycleHook>();
     hooks->Prepare();
 
     CONFIG_SETUP();

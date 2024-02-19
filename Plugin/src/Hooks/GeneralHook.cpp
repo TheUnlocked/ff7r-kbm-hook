@@ -56,6 +56,7 @@ void GeneralHook::ReloadConfig() {
     for (auto info : _hooks) {
         if (info->hook->ShouldEnable()) {
             EnableHook(info);
+            info->hook->RefreshConfig();
         }
         else {
             DisableHook(info);

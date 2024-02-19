@@ -30,7 +30,7 @@ class Key : public String {
             }
             else {
                 _last_data = current_data;
-                _last_vkey = KeyNameToVKey(current_data).value_or(-1);
+                _last_vkey = KeyNameToVKey(current_data).value_or(0);
                 return _last_vkey;
             }
         }
