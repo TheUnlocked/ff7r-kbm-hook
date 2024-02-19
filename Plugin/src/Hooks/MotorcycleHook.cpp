@@ -79,6 +79,12 @@ namespace Keybind {
     };
 }
 
+bool IsInMotorcycleGame(int* flags) {
+    if (flags == nullptr) {
+        return false;
+    }
+    return flags[GAMEPLAY_TYPE] == 1 && flags[UNUSUAL_GAME_MODE] == 1;
+}
 
 void MotorcycleHook::ApplyKeybinds() {
     // save original keybinds
@@ -139,7 +145,9 @@ void MotorcycleHook::RestoreKeybinds() {
 void MotorcycleHook::UpdateKeybinds(int* flags) {
     auto self = GetSingleton();
 
-    if (flags[GAMEPLAY_TYPE] == 1 && flags[UNUSUAL_GAME_MODE] == 1) {
+    self->_flagsLocation = flags;
+
+    if (IsInMotorcycleGame(flags)) {
         // From what I can tell this combination of values only occurs in the motorcycle minigame, but I could be wrong.
         // I haven't tested it in darts or the reactor 5 bridge puzzles/sector 6 claw puzzles so it may apply to that too.
         // Hopefully this hook shouldn't impact those minigames though, even if they do have the same flags.
@@ -203,20 +211,9 @@ void MotorcycleHook::Prepare() {
     );
     _tapKeybindsLocationHook->Enable();
 
-    _setModeFlagHook = dku::Hook::AddCaveHook(
-        AsAddress(dku::Hook::search_pattern<
-            "48 89 9c ee 24 65 10 01"
-        >()), // 1138b7a
-        std::make_pair(0, 8),
-        FUNC_INFO(UpdateKeybinds),
-        PATCH(
-            "\x48\x8d\x8e\xb4\x63\x10\x01" // lea rcx,[rsi+0x11063b4]
-        ),
-        PATCH(""),
-        HookFlag::kRestoreBeforeProlog
-    );
-
-    _clearModeFlagHook = dku::Hook::AddCaveHook(
+    // Technically we would need multiple hooks in order to accurately track the motorcycle state alone,
+    // but because other flags change at the same time, we can get away with only a single hook.
+    _changeModeFlagHook = dku::Hook::AddCaveHook(
         AsAddress(dku::Hook::search_pattern<
             "4a 89 84 f3 24 65 10 01"
         >()), // 1138c77
@@ -231,13 +228,13 @@ void MotorcycleHook::Prepare() {
 }
 
 void MotorcycleHook::Enable() {
-    // _setModeFlagHook->Enable();
-    _clearModeFlagHook->Enable();
+    _isInMotorcycleGameMode = IsInMotorcycleGame(_flagsLocation);
+
+    _changeModeFlagHook->Enable();
 }
 
 void MotorcycleHook::Disable() {
-    // _setModeFlagHook->Disable();
-    _clearModeFlagHook->Disable();
+    _changeModeFlagHook->Disable();
     
     if (_isInMotorcycleGameMode) {
         INFO("Disabled hook while in motorcycle game, need to restore keybinds");

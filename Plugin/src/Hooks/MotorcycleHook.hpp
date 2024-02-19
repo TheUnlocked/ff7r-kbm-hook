@@ -29,6 +29,7 @@ class MotorcycleHook : public Hook<MotorcycleHook> {
         CONFIG_OPTION(Key, LongRange);
 
         char* _keybindsLocation;
+        int* _flagsLocation;
         bool _isInMotorcycleGameMode = false;
         char _normalKeybinds[0xc0];
 
@@ -39,6 +40,5 @@ class MotorcycleHook : public Hook<MotorcycleHook> {
         static void UpdateKeybinds(int* flags);
         
         std::unique_ptr<DKUtil::Hook::CaveHookHandle> _tapKeybindsLocationHook;
-        std::unique_ptr<DKUtil::Hook::CaveHookHandle> _setModeFlagHook;
-        std::unique_ptr<DKUtil::Hook::CaveHookHandle> _clearModeFlagHook;
+        std::unique_ptr<DKUtil::Hook::CaveHookHandle> _changeModeFlagHook;
 };
