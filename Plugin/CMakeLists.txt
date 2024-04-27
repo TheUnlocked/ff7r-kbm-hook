@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 # info
 project(
 	ff7r-kbm-hook
-	VERSION 0.5.1
+	VERSION 0.5.2
 	LANGUAGES CXX
 )
 
