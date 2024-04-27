@@ -60,13 +60,15 @@ event_result ChangeLeaderHook::on_keyDown(int vkCode) {
 
     int targetVkey = 0;
 
-    // 20ms should be long enough for an update cycle, but is short enough to avoid the case where a user holds
-    // a switch key when switching is disallowed, then presses an unrelated key triggering the switch unexpectedly. 
+    // 100ms should be long enough for an update cycle, but is short enough to avoid the case where a user holds
+    // a switch key when switching is disallowed, then presses an unrelated key triggering the switch unexpectedly.
+    // Note: previously this was 20ms, but because input reading appears to be tied to framerate,
+    // this meant switching didn't work at 30fps. 100ms should keep switching working all the way down to 10fps.
     if (vkCode == self->Config_PrevLeader.get_vkey_data()) {
         targetVkey = VK_LEFT;
         self->_pressedPrev = true;
         std::thread([self] {
-            std::this_thread::sleep_for(20ms);
+            std::this_thread::sleep_for(100ms);
             self->_pressedPrev = false;
         }).detach();
     }
@@ -74,7 +76,7 @@ event_result ChangeLeaderHook::on_keyDown(int vkCode) {
         targetVkey = VK_RIGHT;
         self->_pressedNext = true;
         std::thread([self] {
-            std::this_thread::sleep_for(20ms);
+            std::this_thread::sleep_for(100ms);
             self->_pressedNext = false;
         }).detach();
     }
