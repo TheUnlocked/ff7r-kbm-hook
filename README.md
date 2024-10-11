@@ -1,59 +1,37 @@
-# 📑 PluginTemplate
-Generic native dll plugin template for various games.
+# FF7R Improved Keyboard and Mouse Controls
 
-[Create a new plugin project from this template](https://github.com/new?template_name=PluginTemplate&template_owner=gottyduke) and wait for the first workflow action to finish, it will setup project automatically. 
+View details about this mod and download it from [NexusMods](https://www.nexusmods.com/finalfantasy7remake/mods/1552).
 
-## ⚙ Requirements
+## Building
+
+### Dependencies
+
+You will likely need all of the dependencies listed in [PluginTemplate](https://github.com/gottyduke/PluginTemplate?tab=readme-ov-file#-requirements), including:
 
 - [CMake 3.26+](https://cmake.org/)
-  - Add this to your `PATH` during installtion/updating
 - [PowerShell](https://github.com/PowerShell/PowerShell/releases/latest)
 - [Vcpkg](https://github.com/microsoft/vcpkg)
-  - Set the `VCPKG_ROOT` environment variable to the path of the vcpkg folder
-  - Make sure your local vcpkg port is up-to-date by pulling the latest and do `vcpkg integrate install`
 - [Visual Studio Community 2022](https://visualstudio.microsoft.com/)
-  - Desktop development with C++
-- [Auto Deployment Target Path]
-  - Set the `GamePath` environment variable to the path the plugin should install to; [read here](https://github.com/gottyduke/SF_PluginTemplate/wiki/Custom-deployment-rules)
-  
-## ⬇️ Get started
+    - Desktop development with C++
 
-### 💻 Register Visual Studio as a Generator
+But view the above link for more details.
 
-- Open `x64 Native Tools Command Prompt`
-- Run `cmake`
-- Close the cmd window
+### Update submodules
 
-### 📦 Dependencies
+If you haven't already, run `update-submodule.bat` to download the submodules that this relies upon. You can also use the `DKUtilPath` environment variable as described [here](https://github.com/gottyduke/PluginTemplate?tab=readme-ov-file#-dependencies).
 
-- [DKUtil](https://github.com/gottyduke/DKUtil)
+### Building
 
-These dependencies can be configured through the git submodule by running `update-submodule.bat`. Alternatively, the dependencies can also use a local git repository, by setting the `DKUtilPath` environment variable to the path of the local git repository.
+Set the `FF7RGamePath` to a directory to copy the plugin DLL to that location when it finishes building. I would recommend having it copy to your NativeMods folder during development.
 
-In order to enable local git repository lookup, existing folders within `extern` should be **removed**.
+Run `build-msvc.bat` to build. The compiled DLL will be in `Plugin/dist` and in the directory indicated by `FF7RGamePath` if applicable.
 
-> To prevent duplicating submodules in multiple local projects, it's recommended to clone the DKUtil repositories locally. Then, set the environment path accordingly, this ensures all projects share the same package.  
+## Contributing
 
-### 🔨 Building
+I use [Ghidra](https://github.com/NationalSecurityAgency/ghidra) and [Cheat Engine](https://github.com/cheat-engine/cheat-engine) for reverse engineering.
 
-```
-.\make-sln-msvc.bat
-cmake --build build --config Release
-```
-A Visual Studio solution will be generated inside `build` folder.
+Try to follow the existing style and project architecture as much as possible. Memory locations should be found using patterns of surrounding bytes in the binary rather than fixed offset to maximize compatibility with different executable versions and retailers.
 
-### ➕ Addon
+## Credits
 
-This project bundles [DKUtil](https://github.com/gottyduke/DKUtil).  
-This plugin template has auto deployment rules for easier build-and-test, build-and-package features, using simple json rules. [Read more here!](https://github.com/gottyduke/SF_PluginTemplate/wiki/Custom-deployment-rules).  
-> Both enabled by default.
-> To override log path (process directory by default), set the macro value in `PCH.h`.
-> To override config file lookup path (process directory by default), set the macro value in `PCH.h`.
-
-## 📖 License
-
-This branch is licensed under [MIT](LICENSE).
-
-## ❓ Credits
-
-- [Ryan for his commonLibSSE code](https://github.com/Ryan-rsm-McKenzie/CommonLibSSE) which was referenced in DKUtil.
+Based off the incredibly helpful [PluginTemplate](https://github.com/gottyduke/PluginTemplate) by [gottyduke](https://github.com/gottyduke).
