@@ -4,6 +4,7 @@
 #include "Hooks/MapHook.hpp"
 #include "Hooks/MovementHook.hpp"
 #include "Hooks/MotorcycleHook.hpp"
+#include "Hooks/DartsHook.hpp"
 
 using namespace DKUtil::Alias;
 
@@ -16,6 +17,7 @@ void Install() {
     hooks->RegisterHook<MapHook>();
     hooks->RegisterHook<MovementHook>();
     hooks->RegisterHook<MotorcycleHook>();
+    hooks->RegisterHook<DartsHook>();
     hooks->Prepare();
 
     CONFIG_SETUP();
