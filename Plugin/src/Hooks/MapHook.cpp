@@ -69,7 +69,7 @@ void MapHook::SetMapCursorPosition(uintptr_t param1) {
         auto hwnd = GetForegroundWindow();
         DWORD pid;
         GetWindowThreadProcessId(hwnd, &pid);
-        if (pid == DllState::currentProcessId) {
+        if (pid == DllState::processId) {
             RECT rect;
             if (ScreenToClient(hwnd, &p) && GetWindowRect(hwnd, &rect)) {
                 auto width = rect.right - rect.left;

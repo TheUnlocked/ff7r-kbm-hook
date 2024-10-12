@@ -4,5 +4,7 @@
 *.zip
 Plugin/dist/*.dll
 Plugin/dist/*.toml
+Plugin/dist/*.exp
+Plugin/dist/*.lib
 *.timestamp
 deploy-*.ps1
