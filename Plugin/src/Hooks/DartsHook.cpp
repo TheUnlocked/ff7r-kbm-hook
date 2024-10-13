@@ -24,10 +24,6 @@ const auto ResetReticleInjectionSite =
         "48 8b 5c 24 60"
     >()) + 0x5; // ea867e
 
-
-static int cumulativeXDelta = 0;
-static int cumulativeYDelta = 0;
-
 // These values were derived experimentally
 constexpr float _CTR_scaleFactor = 1.5;
 constexpr float _CTR_offsetX = 7.5;
@@ -49,6 +45,9 @@ void ReticleToClientCoords(RECT &windowRect, float* x, float* y) {
     *y = (*y / _CTR_scaleFactor) + (height / 2.0) - _CTR_offsetY;
 }
 
+static float velX = 0;
+static float velY = 0;
+
 void DartsHook::UpdateReticlePositionIntercept(uintptr_t obj, float deltaT) {
     auto self = GetSingleton();
 
@@ -67,17 +66,67 @@ void DartsHook::UpdateReticlePositionIntercept(uintptr_t obj, float deltaT) {
             RECT rect;
             if (ScreenToClient(hwnd, &p) && GetWindowRect(hwnd, &rect)) {
 
-                if (self->Config_ZExperiment_Alternative.get_data()) {
+                if (self->Config_Overhaul.get_data()) {
                     // The alternative game mode changes how the game works to try
                     // to get an analogous experience to what controller players have.
 
-                    auto simulatedOriginX = (float)p.x;
-                    auto simulatedOriginY = (float)p.y;
+                    auto targetX = (float)p.x;
+                    auto targetY = (float)p.y;
 
-                    ClientToReticleCoords(rect, &simulatedOriginX, &simulatedOriginY);
+                    ClientToReticleCoords(rect, &targetX, &targetY);
 
-                    *reticleX += self->Config_ReturnSpeed.get_data() * deltaT * (simulatedOriginX - *reticleX);
-                    *reticleY += self->Config_ReturnSpeed.get_data() * deltaT * (simulatedOriginY - *reticleY);
+                    auto dampingRate = self->Config_Overhaul_Damping.get_data();
+                    auto springConstant = self->Config_Overhaul_Frequency.get_data();
+
+                    // We want the reticle movement to reflect a damped harmonic oscillator.
+                    // While this is fairly easy to approximate, doing it in a timestep-independent
+                    // manner is more complicated.
+                    // See https://www.entropy.energy/scholar/node/damped-harmonic-oscillator for math.
+
+                    // The case we're concerned with is the under-damped oscillator. This has
+                    // a relatively clean-looking solution, but only if you collapse a bunch of
+                    // information into a couple of constants. Those constants can be derived from
+                    // our variables, but it would be so complicated that we may as well just use
+                    // the more verbose general form (though with imaginary numbers pre-factored out).
+
+                    // Desmos graph: https://www.desmos.com/calculator/fwlgfqevnn
+
+                    // Inputs
+                    //     x_0: current position
+                    //     x_t: mouse position
+                    //     v_0: current velocity
+                    //     D  : damping rate
+                    //     k  : spring constant
+                    //     t  : time step length
+                    // Outputs
+                    //     x  : new position
+                    //     v  : new velocity
+                    auto solve = [=](float target, float* reticle, float* vel) {
+                        // Let d = x_0 - x_t
+                        auto distance = *reticle - target;
+                        // Let f = e^(-Dt/2)
+                        auto decayFactor = std::exp(-dampingRate * deltaT / 2);
+                        // Let w = sqrt(k - (D^2)/4)
+                        auto omega = std::sqrt(springConstant - (dampingRate * dampingRate / 4));
+                        // Let s = sin(wt)
+                        auto sinPart = std::sin(omega * deltaT);
+                        // Let c = cos(wt)
+                        auto cosPart = std::cos(omega * deltaT);
+                        // Let o = dc + ((2v_0 + Dd) / 2w) * s
+                        auto oscillationFactor =
+                            distance * cosPart + (2 * (*vel) + (dampingRate * distance)) / (2 * omega) * sinPart;
+                        
+                        // x = fo + x_t
+                        *reticle = decayFactor * oscillationFactor + target;
+                        // v = dx/dt = f/4w * (v_0(4wc - 2Ds) - (ds(D^2 + 4w^2)))
+                        *vel = (decayFactor / (4 * omega)) * (
+                            (*vel * (4 * omega * cosPart - (2 * dampingRate * sinPart)))
+                            - (distance * sinPart * (dampingRate * dampingRate + (4 * omega * omega)))
+                        );
+                    };
+
+                    solve(targetX, reticleX, &self->velX);
+                    solve(targetY, reticleY, &self->velY);
                 }
                 else {
                     // The normal game mode reflects how the game normally works,
@@ -86,8 +135,8 @@ void DartsHook::UpdateReticlePositionIntercept(uintptr_t obj, float deltaT) {
                     float normalizedWindowSize = height / 720.;
                     float normalizedSensitivity = normalizedWindowSize * self->Config_MouseSensitivity.get_data();
 
-                    *reticleX += (double)cumulativeXDelta * normalizedSensitivity;
-                    *reticleY += (double)cumulativeYDelta * normalizedSensitivity;
+                    *reticleX += (double)self->cumulativeXDelta * normalizedSensitivity;
+                    *reticleY += (double)self->cumulativeYDelta * normalizedSensitivity;
 
                     // Need to make sure returnSpeed is restored after use in case someone disables the hook.
                     float oldReturnSpeed = *returnSpeed;
@@ -100,15 +149,23 @@ void DartsHook::UpdateReticlePositionIntercept(uintptr_t obj, float deltaT) {
         }
     }
     
+    self->cumulativeXDelta = 0;
+    self->cumulativeYDelta = 0;
+}
+
+void DartsHook::ResetState() {
     cumulativeXDelta = 0;
     cumulativeYDelta = 0;
+    velX = 0;
+    velY = 0;
 }
 
 void DartsHook::ResetReticleInjection(uintptr_t obj) {
-    cumulativeXDelta = 0;
-    cumulativeYDelta = 0;
+    auto self = GetSingleton();
 
-    if (GetSingleton()->Config_ZExperiment_Alternative.get_data()) {
+    self->ResetState();
+
+    if (self->Config_Overhaul.get_data()) {
         RECT windowRect;
         GetWindowRect(DllState::window, &windowRect);
 
@@ -123,8 +180,9 @@ void DartsHook::ResetReticleInjection(uintptr_t obj) {
 }
 
 event_result DartsHook::on_mouseMove(int32_t xDelta, int32_t yDelta) {
-    cumulativeXDelta += xDelta;
-    cumulativeYDelta += yDelta;
+    auto self = GetSingleton();
+    self->cumulativeXDelta += xDelta;
+    self->cumulativeYDelta += yDelta;
     return Continue;
 }
 
@@ -137,8 +195,16 @@ void DartsHook::Prepare() {
     // Particularly on less-high resolution input devices and smaller mousepads, being able to
     // configure this is critical to make sure the minigame isn't stupidly difficult.
     CONFIG_BIND(Config_ReturnSpeed, 1.8);
-    // The alternative game mode
-    CONFIG_BIND(Config_ZExperiment_Alternative, false);
+
+    // The overhaul completely changes the darts game to act like a dampened harmonic oscillator
+    // where the mouse is the base of the spring and the reticle is the mass on the spring.
+    // In my opinion this is a much better experience on mouse than the direct port of the minigame.
+    CONFIG_BIND(Config_Overhaul, false);
+    // The frequency must be greater than (damping^2 / 4).
+    // Larger values make it hard to counter the oscillation while smaller frequencies can be too slow.
+    CONFIG_BIND(Config_Overhaul_Frequency, 10);
+    // 0 = no damping (not advisable). Large values can make the game too easy.
+    CONFIG_BIND(Config_Overhaul_Damping, 0.5);
 
     _updateReticleHook = dku::Hook::AddRelHook<5, true>(
         UpdateReticlePositionCallerAddress,
@@ -158,7 +224,8 @@ void DartsHook::Prepare() {
 }
 
 void DartsHook::Enable() {
-    firstDartsTick = true;
+    ResetState();
+
     _updateReticleHook->Enable();
     _resetReticleHook->Enable();
     InputManager::GetSingleton()->register_on_mouseMove(on_mouseMove);
