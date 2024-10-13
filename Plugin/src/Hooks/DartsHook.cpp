@@ -147,6 +147,9 @@ void DartsHook::UpdateReticlePositionIntercept(uintptr_t obj, float deltaT) {
                 }
             }
         }
+        else {
+            UpdateReticlePosition(obj, deltaT);
+        }
     }
     
     self->cumulativeXDelta = 0;

@@ -118,20 +118,22 @@ LRESULT CALLBACK InputManager::_Hook_OnMouse(int code, WPARAM wParam, LPARAM lPa
 WNDPROC oldWindowProc;
 
 LRESULT CALLBACK InputManager::_Hook_WindowMessages(HWND hwnd, uint32_t msg, WPARAM wParam, LPARAM lParam) {
-    switch (msg) {
-        case WM_INPUT: {
-            uint32_t dwSize = sizeof(RAWINPUT);
-            static uint8_t lpb[sizeof(RAWINPUT)];
-            GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
-            RAWINPUT* raw = (RAWINPUT*)lpb;
+    if (hwnd == GetForegroundWindow()) {
+        switch (msg) {
+            case WM_INPUT: {
+                uint32_t dwSize = sizeof(RAWINPUT);
+                static uint8_t lpb[sizeof(RAWINPUT)];
+                GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+                RAWINPUT* raw = (RAWINPUT*)lpb;
 
-            if (raw->header.dwType == RIM_TYPEMOUSE) {
-                int xPosRelative = raw->data.mouse.lLastX;
-                int yPosRelative = raw->data.mouse.lLastY;
+                if (raw->header.dwType == RIM_TYPEMOUSE) {
+                    int xPosRelative = raw->data.mouse.lLastX;
+                    int yPosRelative = raw->data.mouse.lLastY;
 
-                EMIT(mouseMove, xPosRelative, yPosRelative);
+                    EMIT(mouseMove, xPosRelative, yPosRelative);
+                }
+                break;
             }
-            break;
         }
     }
     return CallWindowProc(oldWindowProc, hwnd, msg, wParam, lParam);
@@ -146,7 +148,7 @@ void InputManager::InterceptRegisterRawInputDevices(PCRAWINPUTDEVICE rids, uint3
 
     auto hwnd = rids[0].hwndTarget;
     DllState::window = hwnd;
-    
+
     self->SetupHooks(hwnd);
     
     RegisterRawInputDevices(rids, numDevices, ridSize);
