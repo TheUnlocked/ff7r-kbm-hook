@@ -192,11 +192,11 @@ void InputManager::SetupHooks(HWND hwnd) {
 }
 
 const auto RegisterRawInputDevicesInjectionSite =
-    Memory::get_code_address(0x1d0f29e);
-    // AsAddress(dku::Hook::search_pattern<
-    //     "f3 0f 11 53 5c "
-    //     "48 8b 5c 24 60"
-    // >()) + 0xa; // ea8674
+    AsAddress(dku::Hook::search_pattern<
+        "89 5c 24 24 "
+        "48 8d 4c 24 20 "
+        "48 89 44 24 28"
+    >()) + 0xe; // 1d0f29e
 
 InputManager::InputManager() {
     _registerDevicesHook = dku::Hook::AddRelHook<6, true>(
