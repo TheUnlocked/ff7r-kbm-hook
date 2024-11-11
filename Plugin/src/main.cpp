@@ -28,11 +28,11 @@ void Install() {
     hooks->Enable();
 }
 
-// extern "C" {
-//     __declspec(dllexport) void __cdecl Init() {
-//         Install();
-//     }
-// }
+extern "C" {
+    __declspec(dllexport) void __cdecl Init() {
+        Install();
+    }
+}
 
 
 BOOL APIENTRY DllMain(HMODULE a_hModule, DWORD a_ul_reason_for_call, LPVOID a_lpReserved) {
@@ -49,7 +49,7 @@ BOOL APIENTRY DllMain(HMODULE a_hModule, DWORD a_ul_reason_for_call, LPVOID a_lp
         DllState::hmodule = a_hModule;
         INFO("module handle ptr: {}", (void*)a_hModule);
 
-        Install();
+        // Install();
     }
 
     return TRUE;
