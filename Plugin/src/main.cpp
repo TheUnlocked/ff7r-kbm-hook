@@ -30,6 +30,10 @@ void Install() {
 
 extern "C" {
     __declspec(dllexport) void __cdecl Init() {
+        dku::Logger::Init(Plugin::NAME, std::to_string(Plugin::Version));
+        INFO("game type : {}", dku::Hook::GetProcessName());
+        INFO("module handle ptr: {}", (void*)DllState::hmodule);
+        
         Install();
     }
 }
@@ -43,11 +47,7 @@ BOOL APIENTRY DllMain(HMODULE a_hModule, DWORD a_ul_reason_for_call, LPVOID a_lp
         }
 #endif
 
-        dku::Logger::Init(Plugin::NAME, std::to_string(Plugin::Version));
-        INFO("game type : {}", dku::Hook::GetProcessName());
-
         DllState::hmodule = a_hModule;
-        INFO("module handle ptr: {}", (void*)a_hModule);
 
         // Install();
     }
