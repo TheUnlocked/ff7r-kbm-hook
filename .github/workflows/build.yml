@@ -28,4 +28,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Release
-          path: build/Release
+          path: build/Release/ff7r-kbm-hook.dll
