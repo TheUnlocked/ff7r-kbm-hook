@@ -30,7 +30,9 @@ void Install() {
 
 extern "C" {
     __declspec(dllexport) void __cdecl Init() {
+        #if ENABLE_LOGGING
         dku::Logger::Init(Plugin::NAME, std::to_string(Plugin::Version));
+        #endif
         INFO("game type : {}", dku::Hook::GetProcessName());
         INFO("module handle ptr: {}", (void*)DllState::hmodule);
         

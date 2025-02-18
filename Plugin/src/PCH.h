@@ -115,7 +115,19 @@ using namespace std::literals;
 //#define LOG_PATH "RELATIVE LOG PATH"
 //#define CONFIG_PATH "RELATIVE CONFID LOOKUP PATH"
 #include "DKUtil/Hook.hpp"
+
+#define ENABLE_LOGGING 0
+
+#if ENABLE_LOGGING
 #include "DKUtil/Logger.hpp"
+#else
+#define INFO(...) void(0)
+#define DEBUG(...) void(0)
+#define TRACE(...) void(0)
+#define WARN(...) void(0)
+#define ERROR(...) void(0)
+#define FATAL(...) void(0)
+#endif
 
 // Others
 #include "DllState.hpp"
