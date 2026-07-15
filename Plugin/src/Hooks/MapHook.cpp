@@ -27,13 +27,15 @@ const auto ChangeZoom = reinterpret_cast<func_ChangeZoom*>(
     >()) // 13548c0
 );
 
+constexpr auto map_idle_timeout = 100ms;
+
 event_result MapHook::on_scroll(int16_t delta) {
     auto self = GetSingleton();
 
     self->_scrollTicks += (float)delta / WHEEL_DELTA;
     self->_lastScrollTime = std::chrono::system_clock::now();
 
-    if (std::chrono::system_clock::now() - 34ms < self->_lastMapTime) {
+    if (std::chrono::system_clock::now() - map_idle_timeout < self->_lastMapTime) {
         // Scrolling normally acts like up/down arrows, so we want to block
         // scrolling from reaching the game while we're in the map.
         return Cancel;
@@ -55,7 +57,7 @@ void MapHook::SetMapCursorPosition(uintptr_t param1) {
     auto zoom = &Memory::deref<float>(_changeZoomArg, 0x100);
 
     // Allow one frame of tolerance at 30fps
-    if (self->_scrollTicks != 0 && std::chrono::system_clock::now() - 34ms < self->_lastScrollTime) {
+    if (self->_scrollTicks != 0 && std::chrono::system_clock::now() - map_idle_timeout < self->_lastScrollTime) {
         auto zoomPower = GetSingleton()->Config_ZoomSensitivity.get_data() / 50.;
         auto newZoom = *zoom * std::powf(1.f + zoomPower, self->_scrollTicks);
         newZoom = std::clamp(newZoom, 0.015f, 0.12f);
