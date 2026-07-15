@@ -21,7 +21,7 @@ jobs:
       - name: Build
         run: |
           Remove-Item build -Recurse -Force -ErrorAction:SilentlyContinue -Confirm:$False | Out-Null;
-          cmake -B build -S Plugin --preset=build-release-msvc-msvc -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;
+          cmake -B build -S Plugin --preset=build-release-msvc-msvc-with-logging -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;
           cmake --build build --config Release
           
       - name: Upload Artifact
@@ -29,3 +29,15 @@ jobs:
         with:
           name: Release
           path: build/Release/ff7r-kbm-hook.dll
+
+      - name: Build (Linux)
+        run: |
+          Remove-Item build-linux -Recurse -Force -ErrorAction:SilentlyContinue -Confirm:$False | Out-Null;
+          cmake -B build-linux -S Plugin --preset=build-release-msvc-msvc -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;
+          cmake --build build-linux --config Release
+
+      - name: Upload Artifact (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReleaseLinux
+          path: build-linux/Release/ff7r-kbm-hook.dll
