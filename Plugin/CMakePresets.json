@@ -154,6 +154,13 @@
 			]
 		},
 		{
+			"name": "build-release-msvc-msvc-with-logging",
+			"inherits": "build-release-msvc-msvc",
+			"cacheVariables": {
+				"ENABLE_LOGGING": "1"
+			}
+		},
+		{
 			"name": "build-release-msvc-ninja",
 			"inherits": [
 				"common",

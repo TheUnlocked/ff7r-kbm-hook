@@ -106,6 +106,12 @@ if (MSVC)
 endif()
 
 # PCH
+if(DEFINED ENABLE_LOGGING)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE
+		ENABLE_LOGGING=${ENABLE_LOGGING}
+	)
+endif()
+
 target_precompile_headers(
 	${PROJECT_NAME}
 	PRIVATE

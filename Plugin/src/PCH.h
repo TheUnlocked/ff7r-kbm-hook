@@ -116,8 +116,6 @@ using namespace std::literals;
 //#define CONFIG_PATH "RELATIVE CONFID LOOKUP PATH"
 #include "DKUtil/Hook.hpp"
 
-#define ENABLE_LOGGING 0
-
 #if ENABLE_LOGGING
 #include "DKUtil/Logger.hpp"
 #else
